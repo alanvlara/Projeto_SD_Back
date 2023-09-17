@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['web-production-043b.up.railway.app']
 
@@ -239,3 +239,6 @@ AUTH_USER_MODEL = 'usuario.Usuario'
 
 ACCOUNT_ADAPTER = 'usuario.adapter.CustomAccountAdapter'
 URL_FRONTEND = config('URL_FRONTEND', default='https://alanvlara.github.io/Projeto_SD_Front')
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Ou outra opção apropriada
+SESSION_COOKIE_NAME = 'sessionid'  # Nome do cookie da sessão
