@@ -31,7 +31,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['web-production-043b.up.railway.app']
 
 
 # Application definition
@@ -238,4 +238,4 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = 'usuario.Usuario'
 
 ACCOUNT_ADAPTER = 'usuario.adapter.CustomAccountAdapter'
-URL_FRONTEND = config('URL_FRONTEND', default='http://localhost:4200')
+URL_FRONTEND = config('URL_FRONTEND', default='https://alanvlara.github.io/Projeto_SD_Front')
