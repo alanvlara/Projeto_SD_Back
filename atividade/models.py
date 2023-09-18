@@ -16,7 +16,7 @@ class Atividade(models.Model):
     usuario = models.ForeignKey(Usuario, related_name='atividade_usuario', on_delete=models.CASCADE, null=True)
     data = models.DateField(auto_now_add=True)
     # storage=PrivateMediaStorage() add na imagem se quiser que ela seja privada
-    foto = models.ImageField(storage=PrivateMediaStorage(),upload_to=get_upload_path_atividade, null=True, blank=True, default='atividade_default.png')
+    foto = models.ImageField(upload_to=get_upload_path_atividade, null=True, blank=True, default='padroes/atividade-default.jpg')
     evento = models.ForeignKey(Evento, null=True, blank=True, on_delete=models.CASCADE)
 
 
