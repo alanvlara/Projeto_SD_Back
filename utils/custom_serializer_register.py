@@ -11,8 +11,8 @@ class CustomRegisterSerializer(RegisterSerializer):
     endereco = serializers.CharField(max_length=255)
     cidade = serializers.CharField(max_length=255)
     estado = serializers.CharField(max_length=2)
-    criador = serializers.BooleanField()
-    representa = serializers.CharField(max_length=255)
+    criador = serializers.BooleanField(required=False)
+    representa = serializers.CharField(max_length=255, required=False)
 
     def validate_cpf(self, value):
         if not valida_cpf(value):

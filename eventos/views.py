@@ -2,11 +2,14 @@ from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.renderers import JSONRenderer, MultiPartRenderer
+from django.utils import timezone
+from pytz import timezone as pytz_timezone
 
 from eventos.models import Evento
 from utils.permissions import IsOwnerOrReadOnly
 from utils.validators import valida_esporte
 
+brasilia_timezone = pytz_timezone('America/Sao_Paulo')
 
 # Create your views here.
 class EventosSerializer(serializers.ModelSerializer):
@@ -37,11 +40,18 @@ class EventosSerializer(serializers.ModelSerializer):
         
         if not valida_esporte(validated_data.get('esporte')):
             raise serializers.ValidationError("Esporte inválido.")
+        
+
         titulo = validated_data.get('titulo')
         data = validated_data.get('data')
         validated_data['representa'] = user.representa
-        qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?data={titulo}&size=150x150"
+        qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?data={titulo}&size=200x200"
         validated_data['qr_code'] = qr_code_url
+
+        data_atual_brasilia = timezone.now().astimezone(brasilia_timezone).date()
+        # Verificar se a data é maior ou igual à data atual em brasilia
+        if data < data_atual_brasilia:
+            raise serializers.ValidationError("A data do evento deve ser igual ou superior à data atual.")
 
         evento_existente = Evento.objects.filter(titulo=titulo, data=data, representa=user.representa).exists()
         if evento_existente:

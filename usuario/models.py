@@ -17,5 +17,6 @@ class Usuario(AbstractUser):
     estado =  models.CharField(max_length=255, null=True, blank=True)
     foto = models.ImageField(upload_to=get_upload_path_usuario, null=True, blank=True, default='padroes/default-user.jpg')
     totalEventos = models.IntegerField(default=0, null=True, blank=True)
+    quer_criar = models.BooleanField(null=True, blank=True, default=False)
     criador = models.BooleanField(null=True, blank=True, default=False)
     representa = models.CharField(max_length=255, null=True, blank=True, default="Nenhuma")
