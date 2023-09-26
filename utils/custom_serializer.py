@@ -15,7 +15,7 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
     representa = serializers.CharField(allow_null=True, required = False)
 
     class Meta(UserDetailsSerializer.Meta):
-        extra_fields = UserDetailsSerializer.Meta.extra_fields + ['esportePreferido', 'cpf', 'cep', 'endereco', 'cidade', 'estado','foto', 'totalEventos', 'criador', 'representa']
+        extra_fields = UserDetailsSerializer.Meta.extra_fields + ['esportePreferido', 'cpf', 'cep', 'endereco', 'cidade', 'estado','foto', 'totalEventos', 'criador', 'representa', 'quer_criar']
         fields = ('pk', *extra_fields)
 
 

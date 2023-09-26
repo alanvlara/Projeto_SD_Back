@@ -36,6 +36,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.esportePreferido = self.validated_data.get('esportePreferido', '')
         user.criador = self.validated_data.get('criador', '')
         user.representa = self.validated_data.get('representa', '')
+        user.quer_criar = self.validated_data.get('quer_criar', '')
         user.save()
 
 
@@ -52,4 +53,5 @@ class CustomRegisterSerializer(RegisterSerializer):
             'cidade': self.validated_data.get('cidade', ''),
             'criador': self.validated_data.get('criador', ''),
             'representa': self.validated_data.get('representa', ''),
+            'quer_criar': self.validated_data.get('quer_criar', '')
         }
