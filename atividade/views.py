@@ -7,7 +7,8 @@ from rest_framework.exceptions import ValidationError
 from utils.permissions import IsOwnerOrReadOnly
 from django.utils import timezone
 from pytz import timezone as pytz_timezone
-from eventos.views import EventosSerializer
+from eventos.views import EventosCreateGetSerializer
+from django.contrib.auth.models import AnonymousUser
 
 brasilia_timezone = pytz_timezone('America/Sao_Paulo')
 
@@ -15,23 +16,29 @@ class AtividadeWriteSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Atividade
-        fields = ('id', 'usuario', 'data', 'evento', 'foto')  
+        fields = ('id', 'data', 'evento', 'foto')  
 
     def create(self, validated_data):
+        
+        # Pega o usuário logado
+        usuario = self.context['request'].user
+        validated_data['usuario'] = usuario
+
+        #Pega o Evento informado e a data dele
         evento = validated_data.get('evento')
         data_evento = evento.data if evento else None
-        usuario = validated_data.get('usuario')
 
-        # Obtenha a data e hora atual com o fuso horário de Brasília
+        #Verifica se a atividade existe
+        atividade_existente = Atividade.objects.filter(evento=evento, usuario=usuario).first()
+        if atividade_existente:
+            raise ValidationError("Já existe uma atividade para este evento e usuário.")
+
+        # Pega a data e hora atual com o fuso horário de Brasília e verifica a data
         data_atual_brasilia = timezone.now().astimezone(brasilia_timezone).date()
-
         if data_evento and data_evento != data_atual_brasilia:
             raise ValidationError("A atividade só pode ser criada para um evento que ocorre na data atual (hoje) em Brasília.")
 
-        if (
-            evento.esporte == usuario.esportePreferido and
-            usuario.is_active  # Certifique-se de que o usuário está ativo
-        ):
+        if (evento.esporte == usuario.esportePreferido and usuario.is_active):
             usuario.totalEventos += 1
             usuario.save()
 
@@ -41,7 +48,7 @@ class AtividadeWriteSerializer(serializers.ModelSerializer):
 
 class AtividadeReadSerializer(serializers.ModelSerializer):
     usuario = UsuarioReadSerializer()
-    evento = EventosSerializer()
+    evento = EventosCreateGetSerializer()
 
     class Meta:
         model = Atividade
@@ -60,4 +67,8 @@ class AtividadeView(viewsets.ModelViewSet):
         return AtividadeWriteSerializer
 
     def get_queryset(self):
-        return Atividade.objects.filter(usuario = self.request.user)
+        # Verifique se o usuário está autenticado antes de tentar filtrar
+        if not isinstance(self.request.user, AnonymousUser):
+            return Atividade.objects.filter(usuario=self.request.user)
+        else:
+            return Atividade.objects.none()  # Retorne uma queryset vazia se o usuário não estiver autenticado

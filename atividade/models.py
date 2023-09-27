@@ -2,7 +2,6 @@ from django.db import models
 
 from usuario.models import Usuario
 from eventos.models import Evento
-from utils.storages import PrivateMediaStorage
 
 
 def get_upload_path_atividade(instance, filename):

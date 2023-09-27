@@ -1,23 +1,21 @@
 from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework.permissions import SAFE_METHODS
-import base64
 from usuario.models import Usuario
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.renderers import JSONRenderer, MultiPartRenderer
 from atividade.models import Atividade
-from utils.permissions import IsOwnerOrReadOnly
+from utils.permissions import IsOwnerOrReadOnlyUser
 
 
 class UsuarioWriteSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=False)
     foto = serializers.ImageField(required=False)
     totalEventos = serializers.IntegerField(required=False)
-    criador = serializers.BooleanField(required=False)
     
     class Meta:
         model = Usuario
-        exclude = ['password', 'is_superuser', 'is_staff']
+        exclude = ['password', 'is_superuser', 'is_staff', 'criador']
         read_only_fields = ['last_login', 'data_joined']
 
     def update(self, instance, validated_data):
@@ -39,7 +37,7 @@ class UsuarioReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        exclude = ['password', 'is_superuser', 'is_staff']
+        exclude = ['password', 'is_superuser', 'is_staff', 'criador']
 
     def get_foto(self, instance):
         # Verifica se a foto não é nula antes de retornar o URL
@@ -74,7 +72,7 @@ class UsuarioView(viewsets.ModelViewSet):
     serializer_class = UsuarioReadSerializer
     parser_classes = [MultiPartParser, FormParser]
     renderer_classes = [JSONRenderer, MultiPartRenderer]
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnlyUser]
     # a criação deve ser feita pelo endpoint de registro e não será possível excluir, apenas inativar
     http_method_names = ['get', 'put']  
 
