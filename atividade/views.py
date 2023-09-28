@@ -67,8 +67,8 @@ class AtividadeView(viewsets.ModelViewSet):
         return AtividadeWriteSerializer
 
     def get_queryset(self):
-        # Verifique se o usuário está autenticado antes de tentar filtrar
+        # Verifica se o usuário está autenticado antes de tentar filtrar
         if not isinstance(self.request.user, AnonymousUser):
             return Atividade.objects.filter(usuario=self.request.user)
         else:
-            return Atividade.objects.none()  # Retorne uma queryset vazia se o usuário não estiver autenticado
+            return Atividade.objects.none()  # Retorna uma queryset vazia se o usuário não estiver autenticado
