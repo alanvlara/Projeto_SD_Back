@@ -47,7 +47,7 @@ class AtividadeWriteSerializer(serializers.ModelSerializer):
         if data_evento and data_evento != data_atual_brasilia:
             raise serializers.ValidationError("A atividade só pode ser criada para um evento que ocorre na data atual (hoje) em Brasília.")
 
-        if (evento.esporte == usuario.esportePreferido and usuario.is_active):
+        if (usuario.is_active):
             usuario.totalEventos += 1
             usuario.save()
 
@@ -65,7 +65,7 @@ class AtividadeReadSerializer(serializers.ModelSerializer):
 class AtividadeView(viewsets.ModelViewSet):
     queryset = Atividade.objects.all()
     serializer_class = AtividadeReadSerializer
-    http_method_names = ['get', 'post', 'put', 'delete']
+    http_method_names = ['get', 'post']
     permission_classes = [IsOwnerOrReadOnly]  # Aplicando a permissão personalizada
 
     def get_serializer_class(self):
