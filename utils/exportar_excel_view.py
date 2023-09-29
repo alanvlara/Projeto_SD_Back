@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponse
 import pandas as pd
-import xlsxwriter
 import io 
 
 from atividade.models import Atividade

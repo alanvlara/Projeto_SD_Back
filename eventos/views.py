@@ -2,22 +2,16 @@ from rest_framework import serializers
 from rest_framework import viewsets
 from django.utils import timezone
 from pytz import timezone as pytz_timezone
-
 from eventos.models import Evento
 from utils.permissions import IsOwnerOrReadOnly
 from utils.validators import valida_esporte
 
 brasilia_timezone = pytz_timezone('America/Sao_Paulo')
 
-# Create your views here.
-class EventosCreateGetSerializer(serializers.ModelSerializer):
-    qr_code = serializers.URLField(allow_null=True, read_only=True)
-    usuario = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    link = serializers.CharField(max_length=255, required=False)
-
+class EventosReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evento
-        fields = ('id', 'titulo', 'link', 'data', 'esporte', 'usuario', 'qr_code')
+        fields = ('id', 'titulo', 'data', 'esporte', 'usuario', 'qr_code', 'link')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -30,6 +24,15 @@ class EventosCreateGetSerializer(serializers.ModelSerializer):
             data.pop('qr_code')
         
         return data
+
+class EventosWriteSerializer(serializers.ModelSerializer):
+    qr_code = serializers.URLField(allow_null=True, read_only=True)
+    usuario = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    link = serializers.CharField(max_length=255, required=False)
+
+    class Meta:
+        model = Evento
+        fields = ('id', 'titulo', 'link', 'data', 'esporte', 'usuario', 'qr_code')
 
     def create(self, validated_data):
         user = validated_data['usuario']
@@ -47,7 +50,7 @@ class EventosCreateGetSerializer(serializers.ModelSerializer):
         validated_data['qr_code'] = qr_code_url
 
         data_atual_brasilia = timezone.now().astimezone(brasilia_timezone).date()
-        # Verificar se a data é maior ou igual à data atual em brasilia
+        # Verificar se a data é maior ou igual à data atual em Brasília
         if data < data_atual_brasilia:
             raise serializers.ValidationError("A data do evento deve ser igual ou superior à data atual.")
 
@@ -58,21 +61,18 @@ class EventosCreateGetSerializer(serializers.ModelSerializer):
         # Crie o evento se não existir um evento com o mesmo título e data
         evento = Evento.objects.create(**validated_data)
         return evento
-    
-class EventosPutDelSerializer(serializers.ModelSerializer):
-    link = serializers.CharField(max_length=255, required=False)
-    
-    class Meta:
-        model = Evento
-        fields = ( 'titulo', 'link', 'data', 'esporte')
 
     def update(self, instance, validated_data):
-        
-        user = validated_data['usuario']
+        user = self.context['request'].user
+        usuario_associado = instance.usuario
         titulo = validated_data.get('titulo', instance.titulo)
         data = validated_data.get('data')
         data_atual_brasilia = timezone.now().astimezone(brasilia_timezone).date()
-        # Verificar se a data é maior ou igual à data atual em brasilia
+
+        if user != usuario_associado:
+            raise serializers.ValidationError("Você não tem permissão para atualizar este evento.")
+        
+        # Verificar se a data é maior ou igual à data atual em Brasília
         if data < data_atual_brasilia:
             raise serializers.ValidationError("A data do evento deve ser igual ou superior à data atual.")
 
@@ -93,16 +93,12 @@ class EventosPutDelSerializer(serializers.ModelSerializer):
         
         return instance
 
-
-    
 class EventoView(viewsets.ModelViewSet):
     queryset = Evento.objects.all() 
-    serializer_class = EventosPutDelSerializer  
     permission_classes = [IsOwnerOrReadOnly]
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def get_serializer_class(self):
-        # Use o serializador de criação para POST e o serializador existente para PUT
-        if self.request.method == 'GET' or self.request.method == 'POST':
-            return EventosCreateGetSerializer
-        return EventosPutDelSerializer
+        if self.request.method == 'GET':
+            return EventosReadSerializer
+        return EventosWriteSerializer

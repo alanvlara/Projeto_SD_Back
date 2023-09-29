@@ -6,10 +6,13 @@ from rest_framework.permissions import SAFE_METHODS
 from utils.permissions import IsOwnerOrReadOnly
 from django.utils import timezone
 from pytz import timezone as pytz_timezone
-from eventos.views import EventosCreateGetSerializer
+from eventos.views import EventosReadSerializer
+from eventos.models import Evento
 from django.contrib.auth.models import AnonymousUser
 
 brasilia_timezone = pytz_timezone('America/Sao_Paulo')
+
+from rest_framework import serializers
 
 class AtividadeWriteSerializer(serializers.ModelSerializer):
     
@@ -23,17 +26,24 @@ class AtividadeWriteSerializer(serializers.ModelSerializer):
         usuario = self.context['request'].user
         validated_data['usuario'] = usuario
 
-        #Pega o Evento informado e a data dele
+        # Pega o Evento informado
         evento = validated_data.get('evento')
-        data_evento = evento.data if evento else None
 
-        #Verifica se a atividade existe
+        # Verifica se o evento existe no banco de dados
+        try:
+            evento = Evento.objects.get(pk=evento.pk)
+        except Evento.DoesNotExist:
+            raise serializers.ValidationError("Evento não cadastrado")
+
+        # Verifica se a atividade já existe
         atividade_existente = Atividade.objects.filter(evento=evento, usuario=usuario).first()
         if atividade_existente:
             raise serializers.ValidationError("Já existe uma atividade para este evento e usuário.")
 
         # Pega a data e hora atual com o fuso horário de Brasília e verifica a data
         data_atual_brasilia = timezone.now().astimezone(brasilia_timezone).date()
+        data_evento = evento.data if evento else None
+
         if data_evento and data_evento != data_atual_brasilia:
             raise serializers.ValidationError("A atividade só pode ser criada para um evento que ocorre na data atual (hoje) em Brasília.")
 
@@ -43,11 +53,9 @@ class AtividadeWriteSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-
-
 class AtividadeReadSerializer(serializers.ModelSerializer):
     usuario = UsuarioReadSerializer()
-    evento = EventosCreateGetSerializer()
+    evento = EventosReadSerializer()
 
     class Meta:
         model = Atividade
