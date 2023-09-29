@@ -6,33 +6,31 @@ import io
 
 from atividade.models import Atividade
 from eventos.models import Evento
+from usuario.models import Usuario
 
 class ExportarDadosParaExcel(APIView):
     def get(self, request, evento_id):
         # Recupere todas as atividades relacionadas ao evento específico
         atividades = Atividade.objects.filter(evento__id=evento_id)
         
-        # Inicialize uma lista para armazenar as cidades
-        cidades = []
+        # Inicialize um dicionário para armazenar a contagem de participantes por cidade
+        contagem_cidades = {}
 
-        # Itere pelas atividades para coletar as cidades dos usuários
+        # Itere pelas atividades para coletar as cidades dos usuários e contar
         for atividade in atividades:
             usuario = atividade.usuario
             if usuario and usuario.cidade:
-                cidades.append({'cidade': usuario.cidade})
+                cidade = usuario.cidade
+                contagem_cidades[cidade] = contagem_cidades.get(cidade, 0) + 1
 
-        # Crie um DataFrame com os dados coletados
-        df = pd.DataFrame(cidades)
-
-        # Use o Pandas para contar o número de ocorrências de cada cidade
-        contagem_cidades = df['cidade'].value_counts().reset_index()
-        contagem_cidades.columns = ['Cidade', 'Quantidade de Participantes']
+        # Crie um DataFrame a partir do dicionário de contagem
+        df = pd.DataFrame(list(contagem_cidades.items()), columns=['Cidade', 'Participantes'])
 
         # Crie um buffer de memória para armazenar o arquivo Excel
         excel_buffer = io.BytesIO()
 
         # Use o Pandas para escrever o DataFrame no buffer de memória
-        contagem_cidades.to_excel(excel_buffer, index=False)
+        df.to_excel(excel_buffer, index=False)
 
         # Configure a posição do cursor no início do buffer
         excel_buffer.seek(0)
