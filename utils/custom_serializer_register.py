@@ -11,7 +11,7 @@ class CustomRegisterSerializer(RegisterSerializer):
     endereco = serializers.CharField(max_length=255)
     cidade = serializers.CharField(max_length=255)
     estado = serializers.CharField(max_length=2)
-    criador = serializers.BooleanField(required=False)
+    quer_criar = serializers.BooleanField(required=True)
     representa = serializers.CharField(max_length=255, required=False)
 
     def validate_cpf(self, value):
@@ -34,7 +34,6 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.estado = self.validated_data.get('estado', '')
         user.cidade = self.validated_data.get('cidade', '')
         user.esportePreferido = self.validated_data.get('esportePreferido', '')
-        user.criador = self.validated_data.get('criador', '')
         user.representa = self.validated_data.get('representa', '')
         user.quer_criar = self.validated_data.get('quer_criar', '')
         user.save()
@@ -51,7 +50,6 @@ class CustomRegisterSerializer(RegisterSerializer):
             'endereco': self.validated_data.get('endereco', ''),
             'estado': self.validated_data.get('estado', ''),
             'cidade': self.validated_data.get('cidade', ''),
-            'criador': self.validated_data.get('criador', ''),
             'representa': self.validated_data.get('representa', ''),
             'quer_criar': self.validated_data.get('quer_criar', '')
         }
